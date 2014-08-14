@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -1547,7 +1546,7 @@ public class SVG
 
 
    // One of the element types that can cause graphics to be drawn onto the target canvas.
-   // Specifically: ‘circle’, ‘ellipse’, ‘image’, ‘line’, ‘path’, ‘polygon’, ‘polyline’, ‘rect’, ‘text’ and ‘use’.
+   // Specifically: ï¿½circleï¿½, ï¿½ellipseï¿½, ï¿½imageï¿½, ï¿½lineï¿½, ï¿½pathï¿½, ï¿½polygonï¿½, ï¿½polylineï¿½, ï¿½rectï¿½, ï¿½textï¿½ and ï¿½useï¿½.
    protected static abstract class GraphicsElement extends SvgConditionalElement implements HasTransform
    {
       public Matrix  transform;
@@ -1910,7 +1909,8 @@ public class SVG
    protected static class PathDefinition implements PathInterface
    {
       private List<Byte>   commands = null;
-      private List<Float>  coords = null;
+      private float[] coords;
+      private int coordsLength;
 
       private static final byte  MOVETO  = 0;
       private static final byte  LINETO  = 1;
@@ -1923,7 +1923,7 @@ public class SVG
       public PathDefinition()
       {
          this.commands = new ArrayList<Byte>();
-         this.coords = new ArrayList<Float>();
+         this.coords = new float[64];
       }
 
 
@@ -1937,17 +1937,27 @@ public class SVG
       public void  moveTo(float x, float y)
       {
          commands.add(MOVETO);
-         coords.add(x);
-         coords.add(y);
+         addCoord(x);
+         addCoord(y);
+      }
+
+      private void addCoord(float value) {
+         if(coordsLength == coords.length) {
+            float[] newCoords = new float[coords.length * 2];
+            System.arraycopy(coords, 0, newCoords, 0, coords.length);
+            coords = newCoords;
+         }
+         coords[coordsLength] = value;
+         coordsLength++;
       }
 
 
-      @Override
+       @Override
       public void  lineTo(float x, float y)
       {
          commands.add(LINETO);
-         coords.add(x);
-         coords.add(y);
+         addCoord(x);
+         addCoord(y);
       }
 
 
@@ -1955,12 +1965,12 @@ public class SVG
       public void  cubicTo(float x1, float y1, float x2, float y2, float x3, float y3)
       {
          commands.add(CUBICTO);
-         coords.add(x1);
-         coords.add(y1);
-         coords.add(x2);
-         coords.add(y2);
-         coords.add(x3);
-         coords.add(y3);
+         addCoord(x1);
+         addCoord(y1);
+         addCoord(x2);
+         addCoord(y2);
+         addCoord(x3);
+         addCoord(y3);
       }
 
 
@@ -1968,10 +1978,10 @@ public class SVG
       public void  quadTo(float x1, float y1, float x2, float y2)
       {
          commands.add(QUADTO);
-         coords.add(x1);
-         coords.add(y1);
-         coords.add(x2);
-         coords.add(y2);
+         addCoord(x1);
+         addCoord(y1);
+         addCoord(x2);
+         addCoord(y2);
       }
 
 
@@ -1980,11 +1990,11 @@ public class SVG
       {
          int  arc = ARCTO | (largeArcFlag?2:0) | (sweepFlag?1:0);
          commands.add((byte) arc);
-         coords.add(rx);
-         coords.add(ry);
-         coords.add(xAxisRotation);
-         coords.add(x);
-         coords.add(y);
+         addCoord(rx);
+         addCoord(ry);
+         addCoord(xAxisRotation);
+         addCoord(x);
+         addCoord(y);
       }
 
 
@@ -1997,23 +2007,23 @@ public class SVG
 
       public void enumeratePath(PathInterface handler)
       {
-         Iterator<Float>  coordsIter = coords.iterator();
+         int coordPos = 0;
 
          for (byte command: commands)
          {
             switch (command)
             {
                case MOVETO:
-                  handler.moveTo(coordsIter.next(), coordsIter.next());
+                  handler.moveTo(coords[coordPos++], coords[coordPos++]);
                   break;
                case LINETO:
-                  handler.lineTo(coordsIter.next(), coordsIter.next());
+                  handler.lineTo(coords[coordPos++], coords[coordPos++]);
                   break;
                case CUBICTO:
-                  handler.cubicTo(coordsIter.next(), coordsIter.next(), coordsIter.next(), coordsIter.next(),coordsIter.next(), coordsIter.next());
+                  handler.cubicTo(coords[coordPos++], coords[coordPos++], coords[coordPos++], coords[coordPos++], coords[coordPos++], coords[coordPos++]);
                   break;
                case QUADTO:
-                  handler.quadTo(coordsIter.next(), coordsIter.next(), coordsIter.next(), coordsIter.next());
+                  handler.quadTo(coords[coordPos++], coords[coordPos++], coords[coordPos++], coords[coordPos++]);
                   break;
                case CLOSE:
                   handler.close();
@@ -2021,7 +2031,7 @@ public class SVG
                default:
                   boolean  largeArcFlag = (command & 2) != 0;
                   boolean  sweepFlag = (command & 1) != 0;
-                  handler.arcTo(coordsIter.next(), coordsIter.next(), coordsIter.next(), largeArcFlag, sweepFlag, coordsIter.next(), coordsIter.next());
+                  handler.arcTo(coords[coordPos++], coords[coordPos++],coords[coordPos++], largeArcFlag, sweepFlag, coords[coordPos++], coords[coordPos++]);
             }
          }
       }
