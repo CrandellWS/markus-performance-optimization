@@ -1908,7 +1908,9 @@ public class SVG
 
    protected static class PathDefinition implements PathInterface
    {
-      private List<Byte>   commands = null;
+      private byte[]   commands;
+      private int commandsLength;
+
       private float[] coords;
       private int coordsLength;
 
@@ -1922,24 +1924,27 @@ public class SVG
 
       public PathDefinition()
       {
-         this.commands = new ArrayList<Byte>();
+         this.commands = new byte[64];
          this.coords = new float[64];
       }
 
 
       public boolean  isEmpty()
       {
-         return commands.isEmpty();
+         return commandsLength == 0;
       }
 
 
-      @Override
-      public void  moveTo(float x, float y)
-      {
-         commands.add(MOVETO);
-         addCoord(x);
-         addCoord(y);
+      private void addCommand(byte value) {
+         if(commandsLength == commands.length) {
+            byte[] newCommands = new byte[commands.length * 2];
+            System.arraycopy(commands, 0, newCommands, 0, commands.length);
+            commands = newCommands;
+         }
+         commands[commandsLength] = value;
+         commandsLength++;
       }
+
 
       private void addCoord(float value) {
          if(coordsLength == coords.length) {
@@ -1952,10 +1957,18 @@ public class SVG
       }
 
 
-       @Override
+      @Override
+      public void  moveTo(float x, float y)
+      {
+         addCommand(MOVETO);
+         addCoord(x);
+         addCoord(y);
+      }
+
+      @Override
       public void  lineTo(float x, float y)
       {
-         commands.add(LINETO);
+         addCommand(LINETO);
          addCoord(x);
          addCoord(y);
       }
@@ -1964,7 +1977,7 @@ public class SVG
       @Override
       public void  cubicTo(float x1, float y1, float x2, float y2, float x3, float y3)
       {
-         commands.add(CUBICTO);
+         addCommand(CUBICTO);
          addCoord(x1);
          addCoord(y1);
          addCoord(x2);
@@ -1977,7 +1990,7 @@ public class SVG
       @Override
       public void  quadTo(float x1, float y1, float x2, float y2)
       {
-         commands.add(QUADTO);
+         addCommand(QUADTO);
          addCoord(x1);
          addCoord(y1);
          addCoord(x2);
@@ -1989,7 +2002,7 @@ public class SVG
       public void  arcTo(float rx, float ry, float xAxisRotation, boolean largeArcFlag, boolean sweepFlag, float x, float y)
       {
          int  arc = ARCTO | (largeArcFlag?2:0) | (sweepFlag?1:0);
-         commands.add((byte) arc);
+         addCommand((byte) arc);
          addCoord(rx);
          addCoord(ry);
          addCoord(xAxisRotation);
@@ -2001,7 +2014,7 @@ public class SVG
       @Override
       public void  close()
       {
-         commands.add(CLOSE);
+         addCommand(CLOSE);
       }
 
 
@@ -2009,8 +2022,9 @@ public class SVG
       {
          int coordPos = 0;
 
-         for (byte command: commands)
+         for (int commandPos = 0; commandPos < commandsLength; commandPos++)
          {
+            byte command = commands[commandPos];
             switch (command)
             {
                case MOVETO:
