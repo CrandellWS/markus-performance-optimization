@@ -2052,7 +2052,7 @@ public class SVGParser extends DefaultHandler2
       public float nextFloatPrimitive()
       {
          float value = numberParser.parseFloat(input, position, inputLength);
-         if (value != Float.NaN) {
+         if (value == value /* != Float.NaN */) {
             position = numberParser.getEndPos();
          }
          return value;
@@ -2094,7 +2094,7 @@ public class SVGParser extends DefaultHandler2
        */
       public float  checkedNextFloatPrimitive(float lastRead)
       {
-         if (lastRead == Float.NaN) {
+         if (lastRead != lastRead /* == Float.NaN */) {
             return Float.NaN;
          }
          skipCommaWhitespace();
@@ -3639,7 +3639,7 @@ public class SVGParser extends DefaultHandler2
             case 'm':
                x = scan.nextFloatPrimitive();
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3660,7 +3660,7 @@ public class SVGParser extends DefaultHandler2
             case 'l':
                x = scan.nextFloatPrimitive();
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3682,7 +3682,7 @@ public class SVGParser extends DefaultHandler2
                y2 = scan.checkedNextFloatPrimitive(x2);
                x = scan.checkedNextFloatPrimitive(y2);
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3710,7 +3710,7 @@ public class SVGParser extends DefaultHandler2
                y2 = scan.checkedNextFloatPrimitive(x2);
                x = scan.checkedNextFloatPrimitive(y2);
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3739,7 +3739,7 @@ public class SVGParser extends DefaultHandler2
             case 'H':
             case 'h':
                x = scan.nextFloatPrimitive();
-               if (x == Float.NaN) {
+               if (x != x /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3754,7 +3754,7 @@ public class SVGParser extends DefaultHandler2
             case 'V':
             case 'v':
                y = scan.nextFloatPrimitive();
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3772,7 +3772,7 @@ public class SVGParser extends DefaultHandler2
                y1 = scan.checkedNextFloatPrimitive(x1);
                x = scan.checkedNextFloatPrimitive(y1);
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3796,7 +3796,7 @@ public class SVGParser extends DefaultHandler2
                y1 = 2 * currentY - lastControlY;
                x = scan.nextFloatPrimitive();
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN) {
+               if (y != y /* == Float.NaN */) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
@@ -3817,11 +3817,11 @@ public class SVGParser extends DefaultHandler2
                rx = scan.nextFloatPrimitive();
                ry = scan.checkedNextFloatPrimitive(rx);
                xAxisRotation = scan.checkedNextFloatPrimitive(ry);
-               largeArcFlag = scan.checkedNextFlag(xAxisRotation == Float.NaN? null: xAxisRotation);
+               largeArcFlag = scan.checkedNextFlag(xAxisRotation != xAxisRotation /* == Float.NaN */? null: xAxisRotation);
                sweepFlag = scan.checkedNextFlag(largeArcFlag);
                x = scan.checkedNextFloatPrimitive(sweepFlag == null? Float.NaN: 1f);
                y = scan.checkedNextFloatPrimitive(x);
-               if (y == Float.NaN || rx < 0 || ry < 0) {
+               if (y != y /* == Float.NaN */ || rx < 0 || ry < 0) {
                   Log.e(TAG, "Bad path coords for "+((char)pathCommand)+" path segment");
                   return path;
                }
