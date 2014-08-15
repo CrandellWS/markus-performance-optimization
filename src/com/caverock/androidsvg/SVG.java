@@ -964,18 +964,18 @@ public class SVG
 
       public SvgPaint   fill;
       public FillRule   fillRule;
-      public Float      fillOpacity;
+      public float      fillOpacity;
 
       public SvgPaint   stroke;
-      public Float      strokeOpacity;
+      public float      strokeOpacity;
       public Length     strokeWidth;
       public LineCaps   strokeLineCap;
       public LineJoin   strokeLineJoin;
-      public Float      strokeMiterLimit;
+      public float      strokeMiterLimit;
       public Length[]   strokeDashArray;
       public Length     strokeDashOffset;
 
-      public Float      opacity; // master opacity of both stroke and fill
+      public float      opacity; // master opacity of both stroke and fill
 
       public Colour     color;
 
@@ -999,7 +999,7 @@ public class SVG
       public Boolean    visibility; // true if visible
 
       public SvgPaint   stopColor;
-      public Float      stopOpacity;
+      public float      stopOpacity;
 
       public String     clipPath;
       public FillRule   clipRule;
@@ -1007,7 +1007,7 @@ public class SVG
       public String     mask;
 
       public SvgPaint   solidColor;
-      public Float      solidOpacity;
+      public float      solidOpacity;
 
       public SvgPaint   viewportFill;
       public Float      viewportFillOpacity;
