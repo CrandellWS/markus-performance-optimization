@@ -16,6 +16,7 @@
 
 package com.caverock.androidsvg;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -183,7 +184,16 @@ public class SVG
    public static SVG  getFromResource(Resources resources, int resourceId) throws SVGParseException
    {
       SVGParser  parser = new SVGParser();
-      return parser.parse(resources.openRawResource(resourceId));
+      InputStream in = new BufferedInputStream(resources.openRawResource(resourceId));
+      try {
+         return parser.parse(in);
+      } finally {
+         try {
+            in.close();
+         } catch (IOException e) {
+            // Silent
+         }
+      }
    }
 
 
@@ -199,10 +209,16 @@ public class SVG
    public static SVG  getFromAsset(AssetManager assetManager, String filename) throws SVGParseException, IOException
    {
       SVGParser  parser = new SVGParser();
-      InputStream  is = assetManager.open(filename);
-      SVG  svg = parser.parse(is);
-      is.close();
-      return svg;
+      InputStream  is = new BufferedInputStream(assetManager.open(filename));
+      try {
+         return parser.parse(is);
+      } finally {
+         try {
+            is.close();
+         } catch (IOException e) {
+            // Silent
+         }
+      }
    }
 
 
