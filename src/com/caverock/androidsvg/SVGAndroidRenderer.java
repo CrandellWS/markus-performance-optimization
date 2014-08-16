@@ -96,7 +96,8 @@ public class SVGAndroidRenderer
    private SVG                  document;
    private RendererState        state;
    private Stack<RendererState> stateStack;  // Keeps track of render state as we render
-   
+   private List<RendererState>  statePool = new ArrayList<RendererState>();  // Pool objects to avoid creation
+
    // Keep track of element stack while rendering.
    private Stack<SvgContainer>  parentStack; // The 'render parent' for elements like Symbol cf. file parent
    private Stack<Matrix>        matrixStack; // Keeps track of current transform as we descend into element tree
@@ -167,6 +168,19 @@ public class SVGAndroidRenderer
             throw new InternalError(e.toString());
          }
       }
+
+       public void copyFrom(RendererState src) {
+          // TODO pool/copy styles for better performance
+          style = (Style) src.style.clone();
+          hasFill =src.hasFill;
+          hasStroke =src.hasStroke;
+          fillPaint.set(src.fillPaint);
+          strokePaint.set(src.strokePaint);
+          viewPort = Box.copyOrCreateBox(viewPort, src.viewPort);
+          viewBox = Box.copyOrCreateBox(viewBox, src.viewBox);
+          spacePreserve = src.spacePreserve;
+       }
+
 
    }
 
@@ -270,6 +284,9 @@ public class SVGAndroidRenderer
       render(rootObj, rootObj.width, rootObj.height,
              (viewBox != null) ? viewBox : rootObj.viewBox,
              (positioning != null) ? positioning : rootObj.preserveAspectRatio);
+
+      // Clean up the pool
+      statePool.clear();
    }
 
 
@@ -347,21 +364,36 @@ public class SVGAndroidRenderer
       // Save matrix and clip
       canvas.save();
       // Save style state
-      stateStack.push(state);
-      state = (RendererState) state.clone();
+      renderStatePush();
    }
-
 
    private void  statePop()
    {
       // Restore matrix and clip
       canvas.restore();
       // Restore style state
+       renderStatePop();
+   }
+
+   private void renderStatePop() {
+      statePool.add(state);
       state = stateStack.pop();
    }
 
+   /** Pushes render state to the stack and copies its values to a new state. Uses pooling if possible. */
+   private void renderStatePush() {
+      stateStack.push(state);
+      if(!statePool.isEmpty()) {
+         RendererState newState = statePool.remove(statePool.size() - 1);
+         newState.copyFrom(state);
+         state = newState;
+      } else {
+         state = (RendererState) state.clone();
+      }
+   }
 
-   //==============================================================================
+
+    //==============================================================================
 
 
    @SuppressWarnings("deprecation")
@@ -680,8 +712,7 @@ public class SVGAndroidRenderer
       canvas.saveLayerAlpha(null, clamp255(state.style.opacity), Canvas.HAS_ALPHA_LAYER_SAVE_FLAG);
 
       // Save style state
-      stateStack.push(state);
-      state = (RendererState) state.clone();
+      renderStatePush();
 
       if (state.style.mask != null && state.directRendering) {
          SVG.SvgObject  ref = document.resolveIRI(state.style.mask);
@@ -3624,8 +3655,7 @@ public class SVGAndroidRenderer
       // Save matrix and clip
       canvas.save(Canvas.MATRIX_SAVE_FLAG);
       // Save style state
-      stateStack.push(state);
-      state = (RendererState) state.clone();
+      renderStatePush();
    }
 
 
@@ -3634,7 +3664,7 @@ public class SVGAndroidRenderer
       // Restore matrix and clip
       canvas.restore();
       // Restore style state
-      state = stateStack.pop();
+      renderStatePop();
    }
 
 
