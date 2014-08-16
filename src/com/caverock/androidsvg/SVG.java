@@ -891,6 +891,26 @@ public class SVG
          return new Box(minX, minY, maxX-minX, maxY-minY);
       }
 
+      public static Box copyOrCreateBox(Box boxDest, Box boxSrc) {
+         if(boxSrc != null) {
+            if(boxDest != null) {
+               boxDest.copyFrom(boxSrc);
+               return boxDest;
+            } else {
+               return new Box(boxSrc.minX, boxSrc.minY, boxSrc.width, boxSrc.height);
+            }
+         } else {
+            return null;
+         }
+      }
+
+      public void copyFrom(Box src) {
+         minX = src.minX;
+         minY = src.minY;
+         width = src.width;
+         height = src.height;
+      }
+
       public RectF  toRectF()
       {
          return new RectF(minX, minY, maxX(), maxY());
