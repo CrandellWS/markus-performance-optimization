@@ -1039,7 +1039,8 @@ public class SVG
       public static final int  FONT_WEIGHT_BOLD = 700;
       public static final int  FONT_WEIGHT_LIGHTER = -1;
       public static final int  FONT_WEIGHT_BOLDER = +1;
-
+      /** Template, never change any of its values! */
+      public static final Style DEFAULT_STYLE_READ_ONLY = getDefaultStyle();
 
       public enum FillRule
       {
