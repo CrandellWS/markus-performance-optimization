@@ -191,7 +191,7 @@ public class SVGAndroidRenderer
       stateStack = new Stack<RendererState>();
 
       // Initialise the style state properties like Paints etc using a fresh instance of Style
-      updateStyle(state, Style.getDefaultStyle());
+      updateStyle(state, Style.DEFAULT_STYLE_READ_ONLY);
 
       state.viewPort = this.canvasViewPort;
 
@@ -3121,7 +3121,7 @@ public class SVGAndroidRenderer
    private RendererState  findInheritFromAncestorState(SvgObject obj)
    {
       RendererState newState = new RendererState();
-      updateStyle(newState, Style.getDefaultStyle());
+      updateStyle(newState, Style.DEFAULT_STYLE_READ_ONLY);
       return findInheritFromAncestorState(obj, newState);
    }
 
@@ -4059,7 +4059,7 @@ public class SVGAndroidRenderer
 
       // Set the style for the pattern (inherits from its own ancestors, not from callee's state)
       RendererState  baseState = new RendererState();
-      updateStyle(baseState, Style.getDefaultStyle());
+      updateStyle(baseState, Style.DEFAULT_STYLE_READ_ONLY);
       baseState.style.overflow = false;    // By default patterns do not overflow
       state = findInheritFromAncestorState(pattern, baseState);
 
