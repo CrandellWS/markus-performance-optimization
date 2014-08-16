@@ -79,7 +79,7 @@ import com.caverock.androidsvg.SVG.Unit;
  * The rendering part of AndroidSVG.
  * <p>
  * All interaction with AndroidSVG is via the SVG class.  You may ignore this class.
- * 
+ *
  * @hide
  */
 
@@ -139,16 +139,32 @@ public class SVGAndroidRenderer
       public RendererState()
       {
          fillPaint = new Paint();
+         strokePaint = new Paint();
+         initPaints();
+         style = Style.getDefaultStyle();
+      }
+
+      private void initPaints() {
          fillPaint.setFlags(Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
          fillPaint.setStyle(Paint.Style.FILL);
          fillPaint.setTypeface(Typeface.DEFAULT);
 
-         strokePaint = new Paint();
          strokePaint.setFlags(Paint.ANTI_ALIAS_FLAG | Paint.DEV_KERN_TEXT_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
          strokePaint.setStyle(Paint.Style.STROKE);
          strokePaint.setTypeface(Typeface.DEFAULT);
+      }
+
+      public void reset() {
+         fillPaint.reset();
+         strokePaint.reset();
+         initPaints();
 
          style = Style.getDefaultStyle();
+         hasFill = false;
+         hasStroke = false;
+         viewPort = null;
+         viewBox = null;
+         spacePreserve = false;
       }
 
       @Override
@@ -592,7 +608,7 @@ public class SVGAndroidRenderer
          _x = (obj.x != null) ? obj.x.floatValueX(this) : 0f;
          _y = (obj.y != null) ? obj.y.floatValueY(this) : 0f;
       }
-         
+
       Box  viewPortUser = getCurrentViewPortInUserUnits();
       float  _w = (width != null) ? width.floatValueX(this) : viewPortUser.width;  // default 100%
       float  _h = (height != null) ? height.floatValueY(this) : viewPortUser.height;
@@ -685,10 +701,10 @@ public class SVGAndroidRenderer
          // Finally, find the bounding box of the transformed points
          RectF  rect = new RectF(pts[0], pts[1], pts[0], pts[1]);
          for (int i=2; i<=6; i+=2) {
-            if (pts[i] < rect.left) rect.left = pts[i]; 
-            if (pts[i] > rect.right) rect.right = pts[i]; 
-            if (pts[i+1] < rect.top) rect.top = pts[i+1]; 
-            if (pts[i+1] > rect.bottom) rect.bottom = pts[i+1]; 
+            if (pts[i] < rect.left) rect.left = pts[i];
+            if (pts[i] > rect.right) rect.right = pts[i];
+            if (pts[i+1] < rect.top) rect.top = pts[i+1];
+            if (pts[i+1] > rect.bottom) rect.bottom = pts[i+1];
          }
          // Update the parent bounding box with the transformed bbox
          SvgElement  parent = (SvgElement) parentStack.peek();
@@ -740,9 +756,9 @@ public class SVGAndroidRenderer
          SVG.SvgObject  ref = document.resolveIRI(state.style.mask);
          duplicateCanvas();
          renderMask((SVG.Mask) ref, obj);
-         
+
          Bitmap  maskedContent = processMaskBitmaps();
-         
+
          // Retrieve the real canvas
          canvas = canvasStack.pop();
          canvas.save();
@@ -909,7 +925,7 @@ public class SVGAndroidRenderer
                   continue ChildLoop;
             }
          }
-         
+
          // All checks passed!  Render this one element and exit
          render(child);
          break;
@@ -925,7 +941,7 @@ public class SVGAndroidRenderer
       // Actual feature strings have the prefix: FEATURE_STRING_PREFIX (see above)
       // NO indicates feature will probable not ever be implemented
       // NYI indicates support is in progress, or is planned
-      
+
       // Feature sets that represent sets of other feature strings (ie a group of features strings)
       //supportedFeatures.add("SVG");                       // NO
       //supportedFeatures.add("SVGDOM");                    // NO
@@ -1091,9 +1107,9 @@ public class SVGAndroidRenderer
       }
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
-      
+
       boolean  compositing = pushLayer();
 
       if (state.hasFill) {
@@ -1141,7 +1157,7 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
 
       boolean  compositing = pushLayer();
@@ -1180,7 +1196,7 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
 
       boolean  compositing = pushLayer();
@@ -1218,7 +1234,7 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
 
       boolean  compositing = pushLayer();
@@ -1255,7 +1271,7 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
 
       boolean  compositing = pushLayer();
@@ -1310,9 +1326,9 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
-      
+
       boolean  compositing = pushLayer();
 
       if (state.hasFill)
@@ -1329,7 +1345,7 @@ public class SVGAndroidRenderer
 
    private List<MarkerVector>  calculateMarkerPositions(SVG.PolyLine obj)
    {
-      int  numPoints = obj.points.length; 
+      int  numPoints = obj.points.length;
 
       if (numPoints < 2)
          return null;
@@ -1394,9 +1410,9 @@ public class SVGAndroidRenderer
       Path  path = makePathAndBoundingBox(obj);
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
-      
+
       boolean  compositing = pushLayer();
 
       if (state.hasFill)
@@ -1450,9 +1466,9 @@ public class SVGAndroidRenderer
       }
       updateParentBoundingBox(obj);
 
-      checkForGradiantsAndPatterns(obj);      
+      checkForGradiantsAndPatterns(obj);
       checkForClipPath(obj);
-      
+
       boolean  compositing = pushLayer();
 
       enumerateTextSpans(obj, new PlainTextDrawer(x + dx, y + dy));
@@ -1566,7 +1582,7 @@ public class SVGAndroidRenderer
          // Save state
          statePush();
 
-         SVG.TSpan tspan = (SVG.TSpan) obj; 
+         SVG.TSpan tspan = (SVG.TSpan) obj;
 
          updateStyleForElement(state, tspan);
 
@@ -1604,13 +1620,13 @@ public class SVGAndroidRenderer
          // Save state
          statePush();
 
-         SVG.TRef tref = (SVG.TRef) obj; 
+         SVG.TRef tref = (SVG.TRef) obj;
 
          updateStyleForElement(state, tref);
 
          if (display())
          {
-            checkForGradiantsAndPatterns((SvgElement) tref.getTextRoot());      
+            checkForGradiantsAndPatterns((SvgElement) tref.getTextRoot());
 
             // Locate the referenced object
             SVG.SvgObject  ref = obj.document.resolveIRI(tref.href);
@@ -1676,8 +1692,8 @@ public class SVGAndroidRenderer
          }
       }
 
-      checkForGradiantsAndPatterns((SvgElement) obj.getTextRoot());      
-      
+      checkForGradiantsAndPatterns((SvgElement) obj.getTextRoot());
+
       boolean  compositing = pushLayer();
 
       enumerateTextSpans(obj, new PathTextDrawer(path, startOffset, 0f));
@@ -1825,7 +1841,7 @@ public class SVGAndroidRenderer
          isFirstChild = false;
       }
    }
- 
+
 
    //==============================================================================
 
@@ -1876,7 +1892,7 @@ public class SVGAndroidRenderer
          canvas.concat(calculateViewBoxTransform(state.viewPort, obj.viewBox, positioning));
          state.viewBox = obj.viewBox;
       }
-      
+
       boolean  compositing = pushLayer();
 
       renderChildren(obj, true);
@@ -2503,7 +2519,7 @@ public class SVGAndroidRenderer
    {
       Path   path = new Path();
       float  lastX, lastY;
-      
+
       public PathConverter(PathDefinition pathDef)
       {
          if (pathDef == null)
@@ -2561,7 +2577,7 @@ public class SVGAndroidRenderer
       {
          path.close();
       }
-         
+
    }
 
 
@@ -2600,7 +2616,7 @@ public class SVGAndroidRenderer
       float  angleRad = (float) Math.toRadians(angle % 360.0);
       double cosAngle = Math.cos(angleRad);
       double sinAngle = Math.sin(angleRad);
-      
+
       // We simplify the calculations by transforming the arc so that the origin is at the
       // midpoint calculated above followed by a rotation to line up the coordinate axes
       // with the axes of the ellipse.
@@ -2714,14 +2730,14 @@ public class SVGAndroidRenderer
    private static float[]  arcToBeziers(double angleStart, double angleExtent)
    {
       int    numSegments = (int) Math.ceil(Math.abs(angleExtent) / 90.0);
-      
+
       angleStart = Math.toRadians(angleStart);
       angleExtent = Math.toRadians(angleExtent);
       float  angleIncrement = (float) (angleExtent / numSegments);
-      
+
       // The length of each control point vector is given by the following formula.
       double  controlLength = 4.0 / 3.0 * Math.sin(angleIncrement / 2.0) / (1.0 + Math.cos(angleIncrement / 2.0));
-      
+
       float[] coords = new float[numSegments * 6];
       int     pos = 0;
 
@@ -2795,7 +2811,7 @@ public class SVGAndroidRenderer
          return "("+x+","+y+" "+dx+","+dy+")";
       }
    }
-   
+
 
    /*
     *  Calculates the positions and orientations of any markers that should be placed on the given path.
@@ -2809,7 +2825,7 @@ public class SVGAndroidRenderer
       private int                 subpathStartIndex = -1;
       private boolean             closepathReAdjustPending;
 
-      
+
       public MarkerPositionCalculator(PathDefinition pathDef)
       {
          if (pathDef == null)
@@ -2912,7 +2928,7 @@ public class SVGAndroidRenderer
          // See description of "orient" attribute in section 11.6.2.
          closepathReAdjustPending = true;
       }
-         
+
    }
 
 
@@ -2956,7 +2972,7 @@ public class SVGAndroidRenderer
          markers = calculateMarkerPositions((SVG.Line) obj);
       else // PolyLine and Polygon
          markers = calculateMarkerPositions((SVG.PolyLine) obj);
-      
+
       if (markers == null)
          return;
 
@@ -3009,7 +3025,7 @@ public class SVGAndroidRenderer
 
       // "Properties inherit into the <marker> element from its ancestors; properties do not
       // inherit from the element referencing the <marker> element." (sect 11.6.2)
-      state = findInheritFromAncestorState(marker);
+      updateStateFromAncestorState(marker);
 
       Matrix m = new Matrix();
       m.preTranslate(pos.x, pos.y);
@@ -3121,10 +3137,22 @@ public class SVGAndroidRenderer
    private RendererState  findInheritFromAncestorState(SvgObject obj)
    {
       RendererState newState = new RendererState();
+      // Isn't updating style here is somewhat redundant, because newState was initialized with default style?
       updateStyle(newState, Style.DEFAULT_STYLE_READ_ONLY);
       return findInheritFromAncestorState(obj, newState);
    }
 
+   /*
+    * Sets the current state: Determine an elements style based on it's ancestors in the tree rather than
+    * it's render time ancestors.
+    */
+   private void updateStateFromAncestorState(SvgObject obj)
+   {
+      state.reset();
+      // Isn't updating style here is somewhat redundant, because newState was initialized with default style?
+      updateStyle(state, Style.DEFAULT_STYLE_READ_ONLY);
+      state = findInheritFromAncestorState(obj, state);
+   }
 
    private RendererState  findInheritFromAncestorState(SvgObject obj, RendererState newState)
    {
@@ -3139,7 +3167,7 @@ public class SVGAndroidRenderer
             break;
          obj = (SvgObject) obj.parent;
       }
-      
+
       // Now apply the ancestor styles in reverse order to a fresh RendererState object
       for (SvgElementBase ancestor: ancestors)
          updateStyleForElement(newState, ancestor);
@@ -3239,7 +3267,7 @@ public class SVGAndroidRenderer
       statePush();
 
       // Set the style for the gradient (inherits from its own ancestors, not from callee's state)
-      state = findInheritFromAncestorState(gradient);
+      updateStateFromAncestorState(gradient);
 
       // Calculate the gradient transform matrix
       Matrix m = new Matrix();
@@ -3309,11 +3337,11 @@ public class SVGAndroidRenderer
          else if (gradient.spreadMethod == GradientSpread.repeat)
             tileMode = TileMode.REPEAT;
       }
-      
+
       statePop();
 
       // Create shader instance
-      LinearGradient  gr = new LinearGradient(_x1, _y1, _x2, _y2, colours, positions, tileMode); 
+      LinearGradient  gr = new LinearGradient(_x1, _y1, _x2, _y2, colours, positions, tileMode);
       gr.setLocalMatrix(m);
       paint.setShader(gr);
    }
@@ -3348,7 +3376,7 @@ public class SVGAndroidRenderer
       statePush();
 
       // Set the style for the gradient (inherits from its own ancestors, not from callee's state)
-      state = findInheritFromAncestorState(gradient);
+      updateStateFromAncestorState(gradient);
 
       // Calculate the gradient transform matrix
       Matrix m = new Matrix();
@@ -3422,7 +3450,7 @@ public class SVGAndroidRenderer
       statePop();
 
       // Create shader instance
-      RadialGradient  gr = new RadialGradient(_cx, _cy, _r, colours, positions, tileMode); 
+      RadialGradient  gr = new RadialGradient(_cx, _cy, _r, colours, positions, tileMode);
       gr.setLocalMatrix(m);
       paint.setShader(gr);
    }
@@ -3545,7 +3573,7 @@ public class SVGAndroidRenderer
            setPaintColour(state, isFill, state.style.stroke);
         }
       }
-      
+
    }
 
 
@@ -3603,7 +3631,7 @@ public class SVGAndroidRenderer
 
       // "Properties inherit into the <clipPath> element from its ancestors; properties do not
       // inherit from the element referencing the <clipPath> element." (sect 14.3.5)
-      state = findInheritFromAncestorState(clipPath);
+      updateStateFromAncestorState(clipPath);
 
       checkForClipPath(clipPath);
 
@@ -3759,7 +3787,7 @@ public class SVGAndroidRenderer
       }
 
       checkForClipPath(obj);
-      
+
       addObjectToClip(ref, false, combinedPath, combinedPathMatrix);
    }
 
@@ -3911,7 +3939,7 @@ public class SVGAndroidRenderer
       else
       {
          // Rounded rect
-         
+
          // Bexier control point lengths for a 90 degress arc
          float  cpx = rx * BEZIER_ARC_FACTOR;
          float  cpy = ry * BEZIER_ARC_FACTOR;
@@ -4069,7 +4097,7 @@ public class SVGAndroidRenderer
       if (pattern.patternTransform != null)
       {
          canvas.concat(pattern.patternTransform);
-         
+
          // A pattern transform will affect the area we need to cover with the pattern.
          // So we need to alter the area bounding rectangle.
          Matrix inverse = new Matrix();
@@ -4082,10 +4110,10 @@ public class SVGAndroidRenderer
             // Find the bounding box of the shape created by the inverse transform 
             RectF  rect = new RectF(pts[0], pts[1], pts[0], pts[1]);
             for (int i=2; i<=6; i+=2) {
-               if (pts[i] < rect.left) rect.left = pts[i]; 
-               if (pts[i] > rect.right) rect.right = pts[i]; 
-               if (pts[i+1] < rect.top) rect.top = pts[i+1]; 
-               if (pts[i+1] > rect.bottom) rect.bottom = pts[i+1]; 
+               if (pts[i] < rect.left) rect.left = pts[i];
+               if (pts[i] > rect.right) rect.right = pts[i];
+               if (pts[i+1] < rect.top) rect.top = pts[i+1];
+               if (pts[i+1] > rect.bottom) rect.bottom = pts[i+1];
             }
             patternArea = new Box(rect.left, rect.top, rect.right-rect.left, rect.bottom-rect.top);
          }
@@ -4235,7 +4263,7 @@ public class SVGAndroidRenderer
       // Push the state
       statePush();
 
-      state = findInheritFromAncestorState(mask);
+      updateStateFromAncestorState(mask);
       // Set the style for the pattern (inherits from its own ancestors, not from callee's state)
       // The 'opacity', 'filter' and 'display' properties do not apply to the 'mask' element" (sect 14.4)
       // Next line is not actually needed since we aren't calling pushLayer() here. Kept for future reference.
